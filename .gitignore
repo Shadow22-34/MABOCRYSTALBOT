@@ -1,6 +1,7 @@
 # Python
 __pycache__/
 *.py[cod]
+<<<<<<< HEAD
 *$py.class
 *.so
 .Python
@@ -34,6 +35,12 @@ ENV/
 *.swo
 
 # Project-specific
+=======
+*.class
+.env
+venv/
+.DS_Store
+>>>>>>> a02fc9a1ef9cdc1b03c800e33353e484a3be6a54
 hwid_data.json
 keys.json
 server_config.json
