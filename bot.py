@@ -38,6 +38,11 @@ class CrystalBot(commands.Bot):
         )
         
     async def setup_hook(self):
+        # Create cogs directory if it doesn't exist
+        if not os.path.exists('./cogs'):
+            os.makedirs('./cogs')
+            print("Created cogs directory")
+        
         # Load cogs
         for filename in os.listdir('./cogs'):
             if filename.endswith('.py'):
