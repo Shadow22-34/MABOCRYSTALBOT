@@ -13,13 +13,16 @@ class ControlPanel(commands.Cog):
     @app_commands.checks.has_permissions(administrator=True)
     async def controlpanel(self, interaction: discord.Interaction):
         """Set up an advanced control panel with premium features"""
+        # Defer the response first
+        await interaction.response.defer(ephemeral=True)
+        
         try:
             # Check if setup has been run
             try:
                 async with aiofiles.open("server_config.json", "r") as f:
                     config = json.loads(await f.read())
             except FileNotFoundError:
-                await interaction.response.send_message("Please run `/setup` first to initialize Crystal Hub!", ephemeral=True)
+                await interaction.followup.send("Please run `/setup` first to initialize Crystal Hub!")
                 return
 
             # Create premium control panel embed
@@ -58,23 +61,26 @@ class ControlPanel(commands.Cog):
             for control in controls:
                 await message.add_reaction(control)
 
-            await interaction.response.send_message("Control panel created successfully!", ephemeral=True)
+            await interaction.followup.send("Control panel created successfully!")
 
         except Exception as e:
-            await interaction.response.send_message(f"Error: {str(e)}", ephemeral=True)
+            await interaction.followup.send(f"Error: {str(e)}")
 
     @app_commands.command(name="addbuyer")
-    @app_commands.checks.has_permissions(administrator=True)
-    async def addbuyer(self, interaction: discord.Interaction, user: discord.Member):
-        """Add a premium user with exclusive benefits"""
-        try:
-            # Check if setup has been run
+        @app_commands.checks.has_permissions(administrator=True)
+        async def addbuyer(self, interaction: discord.Interaction, user: discord.Member):
+            """Add a premium user with exclusive benefits"""
+            # Defer the response first
+            await interaction.response.defer(ephemeral=True)
+            
             try:
-                async with aiofiles.open("server_config.json", "r") as f:
-                    config = json.loads(await f.read())
-            except FileNotFoundError:
-                await interaction.response.send_message("Please run `/setup` first to initialize Crystal Hub!", ephemeral=True)
-                return
+                # Check if setup has been run
+                try:
+                    async with aiofiles.open("server_config.json", "r") as f:
+                        config = json.loads(await f.read())
+                except FileNotFoundError:
+                    await interaction.followup.send("Please run `/setup` first to initialize Crystal Hub!")
+                    return
 
             premium_role = interaction.guild.get_role(config['roles']['premium'])
             await user.add_roles(premium_role)
@@ -102,10 +108,10 @@ class ControlPanel(commands.Cog):
             
             # Send welcome message
             await interaction.channel.send(embed=welcome)
-            await interaction.response.send_message(f"Successfully added {user.mention} as a premium user!", ephemeral=True)
+            await interaction.followup.send(f"Successfully added {user.mention} as a premium user!")
 
         except Exception as e:
-            await interaction.response.send_message(f"Error: {str(e)}", ephemeral=True)
+            await interaction.followup.send(f"Error: {str(e)}")
 
     @app_commands.command(name="config")
     @app_commands.checks.has_permissions(administrator=True)
