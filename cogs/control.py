@@ -14,9 +14,13 @@ class ControlPanel(commands.Cog):
     async def controlpanel(self, interaction: discord.Interaction):
         """Set up an advanced control panel with premium features"""
         try:
-            # Load config
-            async with aiofiles.open("server_config.json", "r") as f:
-                config = json.loads(await f.read())
+            # Check if setup has been run
+            try:
+                async with aiofiles.open("server_config.json", "r") as f:
+                    config = json.loads(await f.read())
+            except FileNotFoundError:
+                await interaction.response.send_message("Please run `/setup` first to initialize Crystal Hub!", ephemeral=True)
+                return
 
             # Create premium control panel embed
             panel = discord.Embed(
@@ -64,8 +68,13 @@ class ControlPanel(commands.Cog):
     async def addbuyer(self, interaction: discord.Interaction, user: discord.Member):
         """Add a premium user with exclusive benefits"""
         try:
-            async with aiofiles.open("server_config.json", "r") as f:
-                config = json.loads(await f.read())
+            # Check if setup has been run
+            try:
+                async with aiofiles.open("server_config.json", "r") as f:
+                    config = json.loads(await f.read())
+            except FileNotFoundError:
+                await interaction.response.send_message("Please run `/setup` first to initialize Crystal Hub!", ephemeral=True)
+                return
 
             premium_role = interaction.guild.get_role(config['roles']['premium'])
             await user.add_roles(premium_role)
