@@ -1,0 +1,8 @@
+{
+    "basketball_legends": {
+        "name": "Basketball Legends",
+        "version": "1.0.0",
+        "last_updated": "2024-03-19",
+        "script": "print(\"💎 Starting script...\")\n\n-- AC Bypasser\nprint(\"💎 Loading AC Bypasser...\")\n\n[... rest of the script ...]"
+    }
+} 
