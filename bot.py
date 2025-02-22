@@ -29,19 +29,6 @@ hwid_data = {
     "blacklist": []
 }
 
-# Load HWID data
-try:
-    with open("hwid_data.json", "r") as f:
-        hwid_data = json.load(f)
-except FileNotFoundError:
-    with open("hwid_data.json", "w") as f:
-        json.dump(hwid_data, f, indent=4)
-
-async def save_hwid_data():
-    """Save HWID data to file"""
-    async with aiofiles.open("hwid_data.json", "w") as f:
-        await f.write(json.dumps(hwid_data, indent=4))
-
 class CrystalBot(commands.Bot):
     def __init__(self):
         super().__init__(
@@ -98,4 +85,4 @@ async def on_app_command_error(interaction: discord.Interaction, error: app_comm
 
 # Run bot
 if __name__ == "__main__":
-    bot.run(DISCORD_TOKEN) 
+    bot.run(DISCORD_TOKEN)
