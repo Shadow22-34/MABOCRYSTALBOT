@@ -45,3 +45,4 @@ hwid_data.json
 keys.json
 server_config.json
 *.log
+.env
