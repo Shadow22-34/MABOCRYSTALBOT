@@ -49,7 +49,8 @@ class CrystalBot(commands.Bot):
                 await self.load_extension(f'cogs.{filename[:-3]}')
                 print(f'Loaded {filename}')
         
-        # Sync commands
+        # Sync commands with all guilds
+        print("Syncing commands...")
         await self.tree.sync()
         print("Synced command tree")
 
