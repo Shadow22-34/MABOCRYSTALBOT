@@ -62,41 +62,49 @@ async def getscript(self, ctx):
     except Exception as e:
         await ctx.send("❌ An error occurred. Please try again later.")
         print(f"Error in getscript: {e}")
-@commands.command()
-async def panel(self, ctx):
+@commands.command(name='controlpanel', aliases=['panel'])
+async def control_panel(self, ctx):
+    # Check if user has premium role
+    premium_role = discord.utils.get(ctx.guild.roles, id=1343002193321791558)
+    if premium_role not in ctx.author.roles:
+        await ctx.send("❌ You need premium to use Crystal Hub!")
+        return
+
     embed = discord.Embed(
-        title="Script Panel",
-        description="🎮 Crystal Hub - Script Panel",
+        title="🌟 Crystal Hub Premium Control Panel",
+        description="Welcome to your premium dashboard",
         color=0xFF69B4
     )
+
+    # Server Statistics
+    stats = f"📊 **Server Statistics**\n"
+    stats += f"Members: {ctx.guild.member_count}\n"
+    stats += f"Premium Users: {len([m for m in ctx.guild.members if premium_role in m.roles])}\n"
+    embed.add_field(name="", value=stats, inline=False)
+
+    # Quick Controls
+    controls = "⚡ **Quick Controls**\n"
+    controls += "🔒 - Lock all channels\n"
+    controls += "🔓 - Unlock all channels\n"
+    controls += "✅ - Toggle verification\n"
+    controls += "⚡ - Boost mode"
+    embed.add_field(name="", value=controls, inline=False)
+
+    # Premium Features
+    features = "💎 **Premium Features**\n"
+    features += "• Advanced Analytics\n"
+    features += "• Auto-moderation\n"
+    features += "• Custom Commands\n"
+    features += "• Priority Support"
+    embed.add_field(name="", value=features, inline=False)
+
+    # Create view with buttons
+    view = discord.ui.View()
     
-    # Main Panel Section
-    panel_info = "📱 Use the Buttons Below to use the panel\n\n"
-    panel_info += "🔑 **Get Script** - Get your Crystal Hub script\n"
-    panel_info += "📊 **Get Stats** - View your execution statistics\n"
-    panel_info += "🔄 **Reset HWID** - Reset your hardware ID\n"
-    panel_info += "💎 **Premium Status** - Check your subscription\n"
-    embed.add_field(name="", value=panel_info, inline=False)
-    
-    # Information Section
-    info = "ℹ️ Information\n\n"
-    info += "• Report Issues: <#support-ticket>\n"
-    info += "• Script Updates: <#announcements>\n"
-    info += "• Share configs in: <#configs>\n"
-    info += "• Leave your review using `/review`"
-    embed.add_field(name="", value=info, inline=False)
-    
-    # Create buttons
-    get_script = Button(style=discord.ButtonStyle.primary, label="Get Script", emoji="📜")
-    get_stats = Button(style=discord.ButtonStyle.secondary, label="Get Stats", emoji="📊")
-    reset_hwid = Button(style=discord.ButtonStyle.danger, label="Reset HWID", emoji="🔄")
-    premium = Button(style=discord.ButtonStyle.success, label="Premium Status", emoji="💎")
-    
-    # Create view and add buttons
-    view = View()
-    view.add_item(get_script)
-    view.add_item(get_stats)
-    view.add_item(reset_hwid)
-    view.add_item(premium)
-    
+    # Add buttons
+    view.add_item(discord.ui.Button(style=discord.ButtonStyle.gray, label="Lock", emoji="🔒", custom_id="lock"))
+    view.add_item(discord.ui.Button(style=discord.ButtonStyle.gray, label="Unlock", emoji="🔓", custom_id="unlock"))
+    view.add_item(discord.ui.Button(style=discord.ButtonStyle.gray, label="Verify", emoji="✅", custom_id="verify"))
+    view.add_item(discord.ui.Button(style=discord.ButtonStyle.gray, label="Boost", emoji="⚡", custom_id="boost"))
+
     await ctx.send(embed=embed, view=view)
