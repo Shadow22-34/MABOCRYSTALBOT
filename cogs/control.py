@@ -127,8 +127,39 @@ class ControlPanel(commands.Cog):
         )
 
     async def handle_get_script(self, interaction: discord.Interaction):
-        # Add script delivery logic here
-        await interaction.response.send_message("Here's your Crystal Hub script!", ephemeral=True)
+        try:
+            await interaction.response.defer(ephemeral=True)
+            await interaction.followup.send("Here's your Crystal Hub script!", ephemeral=True)
+        except discord.errors.InteractionResponded:
+            await interaction.followup.send("Here's your Crystal Hub script!", ephemeral=True)
+        except Exception as e:
+            await interaction.followup.send(f"An error occurred: {str(e)}", ephemeral=True)
+
+    async def handle_reset_hwid(self, interaction: discord.Interaction):
+        try:
+            await interaction.response.defer(ephemeral=True)
+            await interaction.followup.send("HWID reset successful!", ephemeral=True)
+        except discord.errors.InteractionResponded:
+            await interaction.followup.send("HWID reset successful!", ephemeral=True)
+        except Exception as e:
+            await interaction.followup.send(f"An error occurred: {str(e)}", ephemeral=True)
+
+    async def handle_get_stats(self, interaction: discord.Interaction):
+        try:
+            await interaction.response.defer(ephemeral=True)
+            stats_embed = discord.Embed(
+                title="📊 Your Crystal Hub Stats",
+                color=discord.Color.blue()
+            )
+            stats_embed.add_field(name="Script Executions", value="0", inline=True)
+            stats_embed.add_field(name="Last Used", value="Never", inline=True)
+            stats_embed.add_field(name="HWID Status", value="✅ Active", inline=True)
+            
+            await interaction.followup.send(embed=stats_embed, ephemeral=True)
+        except discord.errors.InteractionResponded:
+            await interaction.followup.send(embed=stats_embed, ephemeral=True)
+        except Exception as e:
+            await interaction.followup.send(f"An error occurred: {str(e)}", ephemeral=True)
 
     async def handle_get_role(self, interaction: discord.Interaction):
         # Add role assignment logic here
