@@ -1,65 +1,86 @@
+import discord
+from discord.ext import commands
+from discord import app_commands
+import sqlite3
+import hashlib
+from datetime import datetime
+import os
+
 class ControlPanel(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
+        self.db_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), 'dashboard', 'instance', 'crystal.db')
 
     @app_commands.command(name="controlpanel")
     async def controlpanel(self, interaction: discord.Interaction):
-        # Check if user has premium role
         premium_role = discord.utils.get(interaction.guild.roles, id=1343002193321791558)
         if premium_role not in interaction.user.roles:
             await interaction.response.send_message("❌ You need premium to use Crystal Hub!", ephemeral=True)
             return
 
         embed = discord.Embed(
-            title="🌟 Crystal Hub Premium Control Panel",
-            description="Welcome to your premium dashboard",
+            title="🎮 Crystal Hub",
+            description="Welcome to your premium script hub!\n\n"
+                      "**Available Commands:**\n"
+                      "🔑 Get Script - Download latest script\n"
+                      "📊 View Stats - Check your statistics\n"
+                      "🔄 Reset HWID - Update your hardware ID\n\n"
+                      "**Need Help?**\n"
+                      "• Support: <#support>\n"
+                      "• Updates: <#announcements>\n"
+                      "• Reviews: Use `/review`",
             color=0xFF69B4
         )
 
-        # Server Statistics
-        stats = f"📊 **Server Statistics**\n"
-        stats += f"Members: {interaction.guild.member_count}\n"
-        stats += f"Premium Users: {len([m for m in interaction.guild.members if premium_role in m.roles])}\n"
-        embed.add_field(name="", value=stats, inline=False)
+        class ScriptButtons(discord.ui.View):
+            def __init__(self, cog):
+                super().__init__()
+                self.cog = cog
 
-        # Quick Controls
-        controls = "⚡ **Quick Controls**\n"
-        controls += "🔒 - Lock all channels\n"
-        controls += "🔓 - Unlock all channels\n"
-        controls += "✅ - Toggle verification\n"
-        controls += "⚡ - Boost mode"
-        embed.add_field(name="", value=controls, inline=False)
+            @discord.ui.button(label="Get Script", emoji="🔑", style=discord.ButtonStyle.primary)
+            async def get_script(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+                try:
+                    hwid = hashlib.sha256(f"crystal_hub_{button_interaction.user.id}".encode()).hexdigest()[:32]
+                    conn = sqlite3.connect(self.cog.db_path)
+                    cursor = conn.cursor()
+                    cursor.execute('SELECT content FROM script ORDER BY id DESC LIMIT 1')
+                    result = cursor.fetchone()
+                    
+                    if result:
+                        script = result[0]
+                        final_script = f"_G.HWID = '{hwid}'\n{script}"
+                        try:
+                            await button_interaction.user.send(f"```lua\n{final_script}\n```")
+                            await button_interaction.response.send_message("✅ Script sent to your DMs!", ephemeral=True)
+                            cursor.execute('UPDATE stats SET total_executions = total_executions + 1')
+                            conn.commit()
+                        except:
+                            await button_interaction.response.send_message("❌ Enable DMs from server members!", ephemeral=True)
+                    else:
+                        await button_interaction.response.send_message("❌ No scripts available!", ephemeral=True)
+                finally:
+                    if 'conn' in locals():
+                        conn.close()
 
-        # Premium Features
-        features = "💎 **Premium Features**\n"
-        features += "• Advanced Analytics\n"
-        features += "• Auto-moderation\n"
-        features += "• Custom Commands\n"
-        features += "• Priority Support"
-        embed.add_field(name="", value=features, inline=False)
+            @discord.ui.button(label="View Stats", emoji="📊", style=discord.ButtonStyle.secondary)
+            async def view_stats(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+                try:
+                    conn = sqlite3.connect(self.cog.db_path)
+                    cursor = conn.cursor()
+                    cursor.execute('SELECT total_executions FROM stats WHERE user_id = ?', (button_interaction.user.id,))
+                    stats = cursor.fetchone()
+                    executions = stats[0] if stats else 0
+                    await button_interaction.response.send_message(f"📊 Your executions: {executions}", ephemeral=True)
+                finally:
+                    if 'conn' in locals():
+                        conn.close()
 
-        # Create view with buttons
-        class ControlButtons(discord.ui.View):
-            def __init__(self):
-                super().__init__(timeout=None)
+            @discord.ui.button(label="Reset HWID", emoji="🔄", style=discord.ButtonStyle.danger)
+            async def reset_hwid(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+                new_hwid = hashlib.sha256(f"crystal_hub_{button_interaction.user.id}_{datetime.now()}".encode()).hexdigest()[:32]
+                await button_interaction.response.send_message(f"✅ New HWID: `{new_hwid}`", ephemeral=True)
 
-            @discord.ui.button(label="Lock", emoji="🔒", style=discord.ButtonStyle.gray, custom_id="lock")
-            async def lock_button(self, button_interaction: discord.Interaction, button: discord.ui.Button):
-                await button_interaction.response.send_message("Channels locked!", ephemeral=True)
-
-            @discord.ui.button(label="Unlock", emoji="🔓", style=discord.ButtonStyle.gray, custom_id="unlock")
-            async def unlock_button(self, button_interaction: discord.Interaction, button: discord.ui.Button):
-                await button_interaction.response.send_message("Channels unlocked!", ephemeral=True)
-
-            @discord.ui.button(label="Verify", emoji="✅", style=discord.ButtonStyle.gray, custom_id="verify")
-            async def verify_button(self, button_interaction: discord.Interaction, button: discord.ui.Button):
-                await button_interaction.response.send_message("Verification toggled!", ephemeral=True)
-
-            @discord.ui.button(label="Boost", emoji="⚡", style=discord.ButtonStyle.gray, custom_id="boost")
-            async def boost_button(self, button_interaction: discord.Interaction, button: discord.ui.Button):
-                await button_interaction.response.send_message("Boost mode toggled!", ephemeral=True)
-
-        await interaction.response.send_message(embed=embed, view=ControlButtons())
+        await interaction.response.send_message(embed=embed, view=ScriptButtons(self))
 
 async def setup(bot):
     await bot.add_cog(ControlPanel(bot))
