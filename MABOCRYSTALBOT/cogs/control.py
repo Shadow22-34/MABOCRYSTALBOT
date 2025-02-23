@@ -34,15 +34,21 @@ class ControlPanel(commands.Cog):
 
         class ScriptButtons(discord.ui.View):
             def __init__(self, cog):
-                super().__init__()
+                super().__init__(timeout=None)  # Add timeout=None
                 self.cog = cog
 
             @discord.ui.button(label="Get Script", emoji="🔑", style=discord.ButtonStyle.primary)
-            async def get_script(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+            async def get_script(self, interaction: discord.Interaction, button: discord.ui.Button):
+                if not interaction.user:
+                    return
                 try:
-                    hwid = hashlib.sha256(f"crystal_hub_{button_interaction.user.id}".encode()).hexdigest()[:32]
+                    hwid = hashlib.sha256(f"crystal_hub_{interaction.user.id}".encode()).hexdigest()[:32]
                     conn = sqlite3.connect(self.cog.db_path)
                     cursor = conn.cursor()
+                    
+                    # First, check if user exists in stats
+                    cursor.execute('INSERT OR IGNORE INTO stats (user_id, total_executions) VALUES (?, 0)', (interaction.user.id,))
+                    
                     cursor.execute('SELECT content FROM script ORDER BY id DESC LIMIT 1')
                     result = cursor.fetchone()
                     
@@ -50,35 +56,39 @@ class ControlPanel(commands.Cog):
                         script = result[0]
                         final_script = f"_G.HWID = '{hwid}'\n{script}"
                         try:
-                            await button_interaction.user.send(f"```lua\n{final_script}\n```")
-                            await button_interaction.response.send_message("✅ Script sent to your DMs!", ephemeral=True)
-                            cursor.execute('UPDATE stats SET total_executions = total_executions + 1')
+                            await interaction.user.send(f"```lua\n{final_script}\n```")
+                            await interaction.response.send_message("✅ Script sent to your DMs!", ephemeral=True)
+                            cursor.execute('UPDATE stats SET total_executions = total_executions + 1 WHERE user_id = ?', (interaction.user.id,))
                             conn.commit()
                         except:
-                            await button_interaction.response.send_message("❌ Enable DMs from server members!", ephemeral=True)
+                            await interaction.response.send_message("❌ Enable DMs from server members!", ephemeral=True)
                     else:
-                        await button_interaction.response.send_message("❌ No scripts available!", ephemeral=True)
+                        await interaction.response.send_message("❌ No scripts available!", ephemeral=True)
                 finally:
                     if 'conn' in locals():
                         conn.close()
 
             @discord.ui.button(label="View Stats", emoji="📊", style=discord.ButtonStyle.secondary)
-            async def view_stats(self, button_interaction: discord.Interaction, button: discord.ui.Button):
+            async def view_stats(self, interaction: discord.Interaction, button: discord.ui.Button):
+                if not interaction.user:
+                    return
                 try:
                     conn = sqlite3.connect(self.cog.db_path)
                     cursor = conn.cursor()
-                    cursor.execute('SELECT total_executions FROM stats WHERE user_id = ?', (button_interaction.user.id,))
+                    cursor.execute('SELECT total_executions FROM stats WHERE user_id = ?', (interaction.user.id,))
                     stats = cursor.fetchone()
                     executions = stats[0] if stats else 0
-                    await button_interaction.response.send_message(f"📊 Your executions: {executions}", ephemeral=True)
+                    await interaction.response.send_message(f"📊 Your executions: {executions}", ephemeral=True)
                 finally:
                     if 'conn' in locals():
                         conn.close()
 
             @discord.ui.button(label="Reset HWID", emoji="🔄", style=discord.ButtonStyle.danger)
-            async def reset_hwid(self, button_interaction: discord.Interaction, button: discord.ui.Button):
-                new_hwid = hashlib.sha256(f"crystal_hub_{button_interaction.user.id}_{datetime.now()}".encode()).hexdigest()[:32]
-                await button_interaction.response.send_message(f"✅ New HWID: `{new_hwid}`", ephemeral=True)
+            async def reset_hwid(self, interaction: discord.Interaction, button: discord.ui.Button):
+                if not interaction.user:
+                    return
+                new_hwid = hashlib.sha256(f"crystal_hub_{interaction.user.id}_{datetime.now()}".encode()).hexdigest()[:32]
+                await interaction.response.send_message(f"✅ New HWID: `{new_hwid}`", ephemeral=True)
 
         await interaction.response.send_message(embed=embed, view=ScriptButtons(self))
 
