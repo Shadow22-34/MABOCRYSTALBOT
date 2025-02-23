@@ -1,0 +1,150 @@
+ local UserInputService = game:GetService("UserInputService")
+        local VirtualInputManager = game:GetService("VirtualInputManager")
+        local Players = game:GetService("Players")
+        local LocalPlayer = Players.LocalPlayer
+        local guarding = false
+        
+        local function hasBasketball(player)
+            if typeof(player) == "Instance" and player:IsA("Model") then
+                return player:FindFirstChild("Basketball") ~= nil
+            end
+            return false
+        end
+        
+        local function getNearestPlayerWithBall()
+            local nearestPlayer = nil
+            local shortestDistance = 14
+            
+            for _, model in pairs(workspace:GetChildren()) do
+                if model:IsA("Model") and hasBasketball(model) and model.Name ~= LocalPlayer.Name then
+                    local distance = (model:GetPivot().Position - LocalPlayer.Character:GetPivot().Position).Magnitude
+                    if distance <= shortestDistance then
+                        shortestDistance = distance
+                        nearestPlayer = model
+                    end
+                end
+            end
+            
+            return nearestPlayer
+        end
+        
+        local function moveTowardsTarget(target)
+            if not target or not LocalPlayer.Character or not LocalPlayer.Character.HumanoidRootPart then return end
+            
+            local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+            if not humanoid then return end
+            
+            local targetPos = target:GetPivot().Position
+            local characterPos = LocalPlayer.Character:GetPivot().Position
+            
+            -- Camera lock logic
+            local camera = workspace.CurrentCamera
+            if target:FindFirstChild("HumanoidRootPart") then
+                local targetCFrame = CFrame.new(camera.CFrame.Position, target.HumanoidRootPart.Position)
+                camera.CFrame = camera.CFrame:Lerp(targetCFrame, 0.2)
+            end
+            
+            -- Find the basket the opponent is closest to
+            local closestBasket = nil
+            local closestDistance = math.huge
+            for _, basket in pairs(workspace:GetChildren()) do
+                if basket.Name == "Basket" then
+                    local distance = (basket:GetPivot().Position - targetPos).Magnitude
+                    if distance < closestDistance then
+                        closestDistance = distance
+                        closestBasket = basket
+                    end
+                end
+            end
+            
+            if closestBasket then
+                -- Calculate direction from opponent to basket
+                local basketDirection = (closestBasket:GetPivot().Position - targetPos).Unit
+                
+                -- Position ourselves between opponent and basket
+                local optimalDistance = 3 -- Closer distance to prevent layups
+                local guardPosition = targetPos + (basketDirection * optimalDistance)
+                
+                -- Move to guarding position
+                humanoid:MoveTo(guardPosition)
+                
+                -- Always face the opponent
+                LocalPlayer.Character.HumanoidRootPart.CFrame = CFrame.lookAt(
+                    LocalPlayer.Character.HumanoidRootPart.Position,
+                    targetPos
+                )
+                
+                -- Movement key handling
+                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.W, false, game)
+                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.S, false, game)
+                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.A, false, game)
+                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.D, false, game)
+                
+                -- Calculate distance to guard position
+                local distanceToGuardPos = (guardPosition - characterPos).Magnitude
+                
+                -- More aggressive movement when not in position
+                if distanceToGuardPos > 0.5 then
+                    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.W, false, game)
+                    
+                    -- Add lateral movement to better cut off paths to basket
+                    local lateralOffset = (targetPos - characterPos):Cross(Vector3.new(0, 1, 0)).Unit
+                    if (guardPosition - characterPos):Dot(lateralOffset) > 0 then
+                        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.D, false, game)
+                    else
+                        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.A, false, game)
+                    end
+                end
+            end
+        end
+
+        local guardingConnection
+        if t then
+            if hasBasketball(LocalPlayer.Character) then
+                return
+            end
+            
+            guardingConnection = game:GetService("RunService").Heartbeat:Connect(function()
+                if guarding then
+                    local target = getNearestPlayerWithBall()
+                    if target then
+                        VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+                        moveTowardsTarget(target)
+                    else
+                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.W, false, game)
+                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.A, false, game)
+                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.S, false, game)
+                        VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.D, false, game)
+                    end
+                end
+            end)
+            
+            UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                if not gameProcessed and input.KeyCode == Enum.KeyCode.V then
+                    guarding = true
+                end
+            end)
+            
+            UserInputService.InputEnded:Connect(function(input, gameProcessed)
+                if not gameProcessed and input.KeyCode == Enum.KeyCode.V then
+                    guarding = false
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.W, false, game)
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.A, false, game)
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.S, false, game)
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.D, false, game)
+                end
+            end)
+        else
+            if guardingConnection then
+                guardingConnection:Disconnect()
+            end
+            guarding = false
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.W, false, game)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.A, false, game)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.S, false, game)
+            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.D, false, game)
+        end
+    end)

@@ -1,0 +1,606 @@
+print("💎 Loading AC Bypass...")
+
+local function loadACBypass(url)
+    local success, err = pcall(function()
+        loadstring(game:HttpGet(url, true))()
+    end)
+    if success then
+        print("✅ AC Bypass part loaded: " .. url)
+    else
+        print("❌ Failed to load AC Bypass part: " .. url .. " - Error: " .. err)
+    end
+    return success
+end
+
+local acScripts = {
+    "https://raw.githubusercontent.com/shakar60/scripts/refs/heads/main/ac%20bypass",
+    "https://raw.githubusercontent.com/Pixeluted/adoniscries/main/Source.lua",
+    "https://raw.githubusercontent.com/RelkzzRebranded/Bypassed---OBFUSCATED..../main/Adonis%20BYPASS.lua"
+}
+
+for _, url in ipairs(acScripts) do
+    if not loadACBypass(url) then
+        print("❌ AC Bypass failed, stopping further execution.")
+        return
+    end
+    task.wait(2)
+end
+
+print("✅ AC Bypass Loaded")
+
+local plr = game:GetService("Players").LocalPlayer
+local cclosure = syn_newcclosure or newcclosure or nil
+
+if not cclosure or not hookmetamethod then
+    plr:Kick("\n\nYour exploit doesn't support hookmetamethod\n")
+end
+
+local oldNamecall
+oldNamecall = hookmetamethod(game, "__namecall", cclosure(function(self, ...)
+    local NamecallMethod = getnamecallmethod()
+    local args = { ... }
+    if (NamecallMethod == "Kick" or NamecallMethod == "kick") and not checkcaller() then
+        if self ~= plr then
+            return oldNamecall(self, ...)
+        end
+        return
+    end
+    return oldNamecall(self, ...)
+end))
+
+for wendigo, iscool in pairs(getgc(true)) do
+    if pcall(function() return rawget(iscool, "indexInstance") end) 
+    and type(rawget(iscool, "indexInstance")) == "table" 
+    and rawget(iscool, "indexInstance")[1] == "kick" then
+        iscool.tvk = {"kick", function() 
+            return game.Workspace:WaitForChild("") 
+        end}
+    end
+end
+
+local getinfo = getinfo or debug.getinfo
+local DEBUG = false
+local Hooked = {}
+
+local Detected, Kill
+
+setthreadidentity(2)
+
+for i, v in getgc(true) do
+    if typeof(v) == "table" then
+        local DetectFunc = rawget(v, "Detected")
+        local KillFunc = rawget(v, "Kill")
+
+        if typeof(DetectFunc) == "function" and not Detected then
+            Detected = DetectFunc
+
+            local Old; Old = hookfunction(Detected, function(Action, Info, NoCrash)
+                if Action ~= "_" then
+                    if DEBUG then
+                        warn("Adonis AntiCheat flagged\nMethod: {Action}\nInfo: {Info}")
+                    end
+                end
+                return true
+            end)
+
+            table.insert(Hooked, Detected)
+        end
+
+        if rawget(v, "Variables") and rawget(v, "Process") and typeof(KillFunc) == "function" and not Kill then
+            Kill = KillFunc
+            local Old; Old = hookfunction(Kill, function(Info)
+                if DEBUG then
+                    warn("Adonis AntiCheat tried to kill (fallback): {Info}")
+                end
+            end)
+
+            table.insert(Hooked, Kill)
+        end
+    end
+end
+
+local Old; Old = hookfunction(getrenv().debug.info, newcclosure(function(...)
+    local LevelOrFunc, Info = ...
+
+    if Detected and LevelOrFunc == Detected then
+        if DEBUG then
+            warn("Adonis AntiCheat sanity check detected and broken")
+        end
+        return coroutine.yield(coroutine.running())
+    end
+
+    return Old(...)
+end))
+
+Bypass = true
+
+local GameMT = getrawmetatable(game)
+local OldIndexFunc = GameMT.__index
+local OldNamecallFunc = GameMT.__namecall
+setreadonly(GameMT, false)
+if (Bypass == true) then
+    GameMT.__namecall = newcclosure(function(self, ...) 
+        local NamecallArgs = {...}
+
+        local DETECTION_STRINGS = 
+        {
+            'CHECKER_1',
+            'CHECKER',
+            'OneMoreTime',
+            'checkingSPEED',
+            'PERMAIDBAN',
+            'BANREMOTE',
+            'FORCEFIELD',
+            'TeleportDetect',
+        }
+
+        if (table.find(DETECTION_STRINGS, NamecallArgs[1]) and getnamecallmethod() == 'FireServer') then 
+            return
+        end
+        local suc, err = pcall(getfenv, 2)
+        if not (err) then 
+            if getfenv(2).crash then 
+                hookfunction(getfenv(2).crash, function() 
+                    
+                end)
+            end
+        end
+        return OldNamecallFunc(self, ...)
+    end)
+end
+
+for _, con in next, getconnections(workspace.CurrentCamera.Changed) do
+    task.wait()
+    con:Disable()
+end
+for _, con in next, getconnections(workspace.CurrentCamera:GetPropertyChangedSignal("CFrame")) do
+    task.wait()
+    con:Disable()
+end
+
+print("💎 Loading Crystal Hub...")
+local success, err = pcall(function()
+    if not game:IsLoaded() then
+        game.Loaded:Wait()
+    end
+    
+    local rolibwaita = loadstring(game:HttpGet("https://codeberg.org/Blukez/rolibwaita/raw/branch/master/Source.lua"))()
+    
+    local Window = rolibwaita:NewWindow({
+        Name = "Crystal Hub 💎",
+        Keybind = "RightShift",
+        UseCoreGui = false,
+        PrintCredits = true
+    })
+
+    local MainTab = Window:NewTab({
+        Name = "Main",
+        Icon = "rbxassetid://4483345998"
+    })
+
+    local ShootingSection = MainTab:NewSection({
+        Name = "Shooting Features",
+        Description = "Shooting mechanics and assists"
+    })
+
+    ShootingSection:NewToggle({
+        Name = "Green Bean",
+        Description = "Auto perfect shot timing (Press Q)",
+        CurrentState = false,
+        Callback = function(value)
+            local UserInputService = game:GetService("UserInputService")
+            local VirtualInputManager = game:GetService("VirtualInputManager")
+            local shooting = false
+
+            local function holdE()
+                VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.E, false, game)
+            end
+
+            local function releaseE()
+                VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.E, false, game)
+            end
+
+            local function doAutoGreen()
+                if not shooting then
+                    shooting = true
+                    holdE()
+                    task.wait(0.332)
+                    releaseE()
+                    task.wait(0.2)
+                    shooting = false
+                end
+            end
+
+            UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                if not gameProcessed and input.KeyCode == Enum.KeyCode.Q then
+                    doAutoGreen()
+                end
+            end)
+        end
+    })
+    -- After the Green Bean toggle, add this new feature
+        local DefenseSection = MainTab:NewSection({
+            Name = "Defense Features",
+            Description = "Advanced defensive mechanics"
+        })
+    
+        DefenseSection:NewToggle({
+            Name = "Crystal Guard V2",
+            Description = "💎 Mega OP Auto Guard (Hold V)",
+            CurrentState = false,
+            Callback = function(value)
+                local Players = game:GetService("Players")
+                local LocalPlayer = Players.LocalPlayer
+                local RunService = game:GetService("RunService")
+                local UserInputService = game:GetService("UserInputService")
+                local VirtualInputManager = game:GetService("VirtualInputManager")
+                local guardConnection
+                local guarding = false
+    
+                local function getPlayerWithBall()
+                    for _, player in pairs(workspace:GetChildren()) do
+                        if player:IsA("Model") and player:FindFirstChild("Basketball") then
+                            return player
+                        end
+                    end
+                    return nil
+                end
+    
+                local function moveToPosition(targetPosition)
+                    if not LocalPlayer.Character or not LocalPlayer.Character:FindFirstChild("Humanoid") then return end
+                    local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+                    
+                    -- Use more natural movement speed
+                    if not humanoid.WalkSpeed == 16 then
+                        humanoid.WalkSpeed = 16
+                    end
+                    
+                    -- Move towards target using default movement
+                    humanoid:MoveTo(targetPosition)
+                end
+    
+                -- Replace the calculateDefensivePosition function in Crystal Guard V2
+                local function calculateDefensivePosition(target)
+                    if not target or not target:FindFirstChild("HumanoidRootPart") then return nil end
+                    
+                    local targetRoot = target:FindFirstChild("HumanoidRootPart")
+                    local targetPosition = targetRoot.Position
+                    local targetVelocity = targetRoot.Velocity
+                    local myRoot = LocalPlayer.Character.HumanoidRootPart
+                    
+                    -- Predict target's next position based on their velocity
+                    local predictedPosition = targetPosition + (targetVelocity * 0.1)
+                    
+                    -- Calculate optimal defensive position
+                    local toTarget = (predictedPosition - myRoot.Position)
+                    local distance = toTarget.Magnitude
+                    local direction = toTarget.Unit
+                    
+                    -- Dynamic positioning based on target's movement
+                    local idealDistance = 3.65
+                    local guardPosition = predictedPosition - (direction * idealDistance)
+                    
+                    -- Side movement compensation
+                    local targetRight = targetRoot.CFrame.RightVector
+                    local sideMovement = targetVelocity:Dot(targetRight)
+                    guardPosition = guardPosition + (targetRight * (sideMovement * 0.15))
+                    
+                    -- Height adjustment to stay grounded
+                    guardPosition = Vector3.new(guardPosition.X, myRoot.Position.Y, guardPosition.Z)
+                    
+                    -- Prevent getting behind target
+                    local targetLook = targetRoot.CFrame.LookVector
+                    local guardToTarget = (predictedPosition - guardPosition).Unit
+                    local dotProduct = guardToTarget:Dot(targetLook)
+                    
+                    if dotProduct < 0 then
+                        -- Quick reposition if we're getting behind
+                        local crossProduct = targetLook:Cross(Vector3.new(0, 1, 0))
+                        local sideOffset = crossProduct * (idealDistance * 0.8)
+                        guardPosition = predictedPosition + sideOffset
+                    end
+                    
+                    -- Additional movement smoothing
+                    local currentPos = myRoot.Position
+                    local smoothFactor = 0.7
+                    guardPosition = currentPos:Lerp(guardPosition, smoothFactor)
+                    
+                    return guardPosition
+                end
+    
+                if value then
+                    guardConnection = RunService.RenderStepped:Connect(function()
+                        if guarding then
+                            local target = getPlayerWithBall()
+                            if target and LocalPlayer.Character then
+                                local defensivePos = calculateDefensivePosition(target)
+                                if defensivePos then
+                                    moveToPosition(defensivePos)
+                                    VirtualInputManager:SendKeyEvent(true, Enum.KeyCode.F, false, game)
+                                end
+                            end
+                        end
+                    end)
+    
+                    UserInputService.InputBegan:Connect(function(input, gameProcessed)
+                        if not gameProcessed and input.KeyCode == Enum.KeyCode.V then
+                            guarding = true
+                        end
+                    end)
+    
+                    UserInputService.InputEnded:Connect(function(input, gameProcessed)
+                        if not gameProcessed and input.KeyCode == Enum.KeyCode.V then
+                            guarding = false
+                            VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+                        end
+                    end)
+                else
+                    if guardConnection then
+                        guardConnection:Disconnect()
+                    end
+                    guarding = false
+                    VirtualInputManager:SendKeyEvent(false, Enum.KeyCode.F, false, game)
+                end
+            end
+        })
+    -- Add after the Defense Section
+        -- Replace the entire Ball Control Section with this
+            local BallControlSection = MainTab:NewSection({
+                Name = "Ball Control",
+                Description = "Ball manipulation features"
+            })
+    
+            local magSize = 5 -- Default size
+            local magEnabled = false
+            local magPart = nil
+    
+            -- Replace the Ball Control Section with this
+            local BallControlSection = MainTab:NewSection({
+                Name = "Ball Control",
+                Description = "Ball manipulation features"
+            })
+    
+            local magSize = 5
+            local magEnabled = false
+            local magPart = nil
+    
+            -- Correct slider format
+            local MagnetSlider = BallControlSection:NewSlider({
+                Name = "Ball Magnet Range",
+                Description = "💎 Adjust reach distance",
+                MinMax = {"0", "40"},
+                Increment = 1,
+                CurrentValue = 5,
+                Callback = function(value)
+                    magSize = value
+                    if magPart then
+                        magPart.Size = Vector3.new(value, value, value)
+                    end
+                end
+            })
+    
+            -- Enhanced guard tracking function
+            local function calculateDefensivePosition(target)
+                if not target or not target:FindFirstChild("HumanoidRootPart") then return nil end
+                
+                local targetRoot = target:FindFirstChild("HumanoidRootPart")
+                local targetPosition = targetRoot.Position
+                local targetVelocity = targetRoot.Velocity
+                local myRoot = LocalPlayer.Character.HumanoidRootPart
+                
+                -- Advanced movement prediction
+                local predictionTime = 0.15
+                local predictedPosition = targetPosition + (targetVelocity * predictionTime)
+                
+                -- Movement pattern detection
+                local movementDirection = targetVelocity.Unit
+                local targetLook = targetRoot.CFrame.LookVector
+                local targetRight = targetRoot.CFrame.RightVector
+                local toTarget = (targetPosition - myRoot.Position)
+                local behindTarget = toTarget:Dot(targetLook) < 0
+                
+                -- Dynamic positioning
+                local idealDistance = behindTarget and 2 or 3.65
+                local guardPosition = predictedPosition - (movementDirection * idealDistance)
+                
+                -- Enhanced side movement compensation
+                local sideMovement = targetVelocity:Dot(targetRight)
+                guardPosition = guardPosition + (targetRight * (sideMovement * 0.25))
+                
+                -- Recovery system
+                if behindTarget then
+                    local recoveryOffset = targetLook * 3.65
+                    guardPosition = targetPosition + recoveryOffset
+                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                        LocalPlayer.Character.Humanoid.WalkSpeed = 18
+                    end
+                else
+                    if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("Humanoid") then
+                        LocalPlayer.Character.Humanoid.WalkSpeed = 16
+                    end
+                end
+                
+                -- Natural movement smoothing
+                local smoothFactor = behindTarget and 0.8 or 0.6
+                guardPosition = myRoot.Position:Lerp(guardPosition, smoothFactor)
+                
+                return Vector3.new(guardPosition.X, myRoot.Position.Y, guardPosition.Z)
+            end
+    
+            BallControlSection:NewToggle({
+                Name = "Ball Magnet",
+                Description = "💎 Enhanced ball control",
+                CurrentState = false,
+                Callback = function(value)
+                    magEnabled = value
+                    
+                    if value then
+                        -- Create visible hitbox
+                        magPart = Instance.new("Part")
+                        magPart.Size = Vector3.new(magSize, magSize, magSize)
+                        magPart.Transparency = 0.7
+                        magPart.Color = Color3.fromRGB(0, 157, 255)
+                        magPart.Material = Enum.Material.ForceField
+                        magPart.CanCollide = false
+                        magPart.Anchored = true
+                        magPart.Name = "MagnetField"
+                        magPart.Parent = workspace
+    
+                        RunService.Heartbeat:Connect(function()
+                            if not magEnabled then return end
+                            
+                            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                                magPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame
+                                
+                                -- Aggressive ball collection
+                                for _, obj in pairs(workspace:GetChildren()) do
+                                    if obj:IsA("Model") and obj:FindFirstChild("Basketball") then
+                                        local ball = obj.Basketball
+                                        local distance = (ball.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                                        
+                                        if distance <= magSize/2 then
+                                            firetouchinterest(LocalPlayer.Character.HumanoidRootPart, ball, 0)
+                                            task.wait()
+                                            firetouchinterest(LocalPlayer.Character.HumanoidRootPart, ball, 1)
+                                        end
+                                    end
+                                end
+                            end
+                        end)
+                    else
+                        if magPart then
+                            magPart:Destroy()
+                            magPart = nil
+                        end
+                    end
+                end
+            })
+    
+            BallControlSection:NewSlider({
+                Name = "Magnet Range",
+                Description = "Adjust ball magnet range (0-40)",
+                Min = 0,
+                Max = 40,
+                Default = 5,
+                Increment = 1,
+                Callback = function(value)
+                    magSize = value
+                    if magPart then
+                        magPart.Size = Vector3.new(value, value, value)
+                    end
+                end
+            })
+    
+            BallControlSection:NewToggle({
+                Name = "Crystal Magnet",
+                Description = "💎 Enhanced ball control",
+                CurrentState = false,
+                Callback = function(value)
+                    magEnabled = value
+                    
+                    if value then
+                        -- Create invisible part for detection
+                        magPart = Instance.new("Part")
+                        magPart.Size = Vector3.new(magSize, magSize, magSize)
+                        magPart.Transparency = 0.7
+                        magPart.Color = Color3.fromRGB(0, 157, 255)
+                        magPart.Material = Enum.Material.ForceField
+                        magPart.CanCollide = false
+                        magPart.Anchored = true
+                        magPart.Name = "MagnetField"
+                        magPart.Parent = workspace
+    
+                        RunService.Heartbeat:Connect(function()
+                            if not magEnabled then return end
+                            
+                            -- Update magnet position
+                            if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                                magPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame
+                                
+                                -- Find nearby basketballs
+                                for _, obj in pairs(workspace:GetChildren()) do
+                                    if obj:IsA("Model") and obj:FindFirstChild("Basketball") and obj.Name ~= LocalPlayer.Name then
+                                        local ball = obj.Basketball
+                                        local distance = (ball.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                                        
+                                        if distance <= magSize/2 then
+                                            -- Trigger ball pickup using native touch interest
+                                            firetouchinterest(LocalPlayer.Character.HumanoidRootPart, ball, 0)
+                                            task.wait()
+                                            firetouchinterest(LocalPlayer.Character.HumanoidRootPart, ball, 1)
+                                        end
+                                    end
+                                end
+                            end
+                        end)
+                    else
+                        if magPart then
+                            magPart:Destroy()
+                            magPart = nil
+                        end
+                    end
+                end
+            })
+        -- Add Ball Magnet feature
+        BallControlSection:NewToggle({
+            Name = "Ball Magnet",
+            Description = "💎 Enhanced ball control",
+            CurrentState = false,
+            Callback = function(value)
+                magEnabled = value
+                
+                if value then
+                    -- Create hitbox
+                    magPart = Instance.new("Part")
+                    magPart.Size = Vector3.new(magSize, magSize, magSize)
+                    magPart.Transparency = 0.7
+                    magPart.Color = Color3.fromRGB(0, 157, 255)
+                    magPart.Material = Enum.Material.ForceField
+                    magPart.CanCollide = false
+                    magPart.Anchored = true
+                    magPart.Name = math.random() -- Random name for stealth
+                    magPart.Parent = workspace
+    
+                    -- Stealth connection using RenderStepped
+                    magConnection = RunService.RenderStepped:Connect(function()
+                        if not magEnabled then return end
+                        
+                        if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                            magPart.CFrame = LocalPlayer.Character.HumanoidRootPart.CFrame
+                            
+                            -- Enhanced ball collection
+                            for _, obj in pairs(workspace:GetChildren()) do
+                                if obj:IsA("Model") and obj:FindFirstChild("Basketball") then
+                                    local ball = obj.Basketball
+                                    local distance = (ball.Position - LocalPlayer.Character.HumanoidRootPart.Position).Magnitude
+                                    
+                                    if distance <= magSize/2 then
+                                        task.spawn(function()
+                                            firetouchinterest(LocalPlayer.Character.HumanoidRootPart, ball, 0)
+                                            task.wait()
+                                            firetouchinterest(LocalPlayer.Character.HumanoidRootPart, ball, 1)
+                                        end)
+                                    end
+                                end
+                            end
+                        end
+                    end)
+                else
+                    if magConnection then
+                        magConnection:Disconnect()
+                        magConnection = nil
+                    end
+                    if magPart then
+                        magPart:Destroy()
+                        magPart = nil
+                    end
+                end
+            end
+        })
+end)
+
+if success then
+    print("✅ Crystal Hub Loaded Successfully!")
+else
+    print("❌ Failed to load Crystal Hub:", err)
+end

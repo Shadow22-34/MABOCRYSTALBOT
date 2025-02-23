@@ -5,6 +5,31 @@ import json
 import aiofiles
 from datetime import datetime, timedelta
 
+class ControlPanelView(discord.ui.View):
+    def __init__(self, cog):
+        super().__init__(timeout=None)
+        self.cog = cog
+
+    @discord.ui.button(label="🔑 Redeem Key", style=discord.ButtonStyle.green, custom_id="redeem_key")
+    async def redeem_key(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.cog.handle_redeem_key(interaction)
+
+    @discord.ui.button(label="📜 Get Script", style=discord.ButtonStyle.blurple, custom_id="get_script")
+    async def get_script(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.cog.handle_get_script(interaction)
+
+    @discord.ui.button(label="⚡ Get Role", style=discord.ButtonStyle.blurple, custom_id="get_role")
+    async def get_role(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.cog.handle_get_role(interaction)
+
+    @discord.ui.button(label="⚙️ Reset HWID", style=discord.ButtonStyle.gray, custom_id="reset_hwid")
+    async def reset_hwid(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.cog.handle_reset_hwid(interaction)
+
+    @discord.ui.button(label="📊 Get Stats", style=discord.ButtonStyle.gray, custom_id="get_stats")
+    async def get_stats(self, interaction: discord.Interaction, button: discord.ui.Button):
+        await self.cog.handle_get_stats(interaction)
+
 class ControlPanel(commands.Cog):
     def __init__(self, bot):
         self.bot = bot
@@ -68,19 +93,20 @@ class ControlPanel(commands.Cog):
         if not interaction.type == discord.InteractionType.component:
             return
 
+        # Fix button interaction handling
         try:
-            if interaction.custom_id == "redeem_key":
+            if interaction.data.get('custom_id') == "redeem_key":
                 await self.handle_redeem_key(interaction)
-            elif interaction.custom_id == "get_script":
+            elif interaction.data.get('custom_id') == "get_script":
                 await self.handle_get_script(interaction)
-            elif interaction.custom_id == "get_role":
+            elif interaction.data.get('custom_id') == "get_role":
                 await self.handle_get_role(interaction)
-            elif interaction.custom_id == "reset_hwid":
+            elif interaction.data.get('custom_id') == "reset_hwid":
                 await self.handle_reset_hwid(interaction)
-            elif interaction.custom_id == "get_stats":
+            elif interaction.data.get('custom_id') == "get_stats":
                 await self.handle_get_stats(interaction)
         except Exception as e:
-            await interaction.response.send_message(f"Error: {str(e)}", ephemeral=True)
+            await interaction.response.send_message(f"An error occurred: {str(e)}", ephemeral=True)
 
     async def handle_redeem_key(self, interaction: discord.Interaction):
         # Add key redemption logic here
