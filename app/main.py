@@ -1,12 +1,10 @@
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from .routes import api, scripts
-from .utils import discord_webhook
 from datetime import datetime
 import json
 import os
 
-# Rename the app variable to match what gunicorn expects
+# Create the FastAPI app instance
 app = FastAPI(title="Crystal Hub Admin API")
 
 # Configure webhook
@@ -43,3 +41,6 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
+
+# Make sure app is explicitly exported
+__all__ = ['app']
