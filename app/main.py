@@ -2,10 +2,16 @@ from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from .routes import api, scripts
 from .utils import discord_webhook
+from datetime import datetime
 import json
 import os
 
+# Rename the app variable to match what gunicorn expects
 app = FastAPI(title="Crystal Hub Admin API")
+
+# Configure webhook
+WEBHOOK_URL = os.getenv("DISCORD_WEBHOOK_URL")
+webhook_notifier = discord_webhook.DiscordNotifier(WEBHOOK_URL)
 
 # Configure CORS
 app.add_middleware(
@@ -16,9 +22,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Include routers
+# Include routers with webhook dependency
 app.include_router(api.router)
-app.include_router(scripts.router)
+app.include_router(
+    scripts.router,
+    dependencies=[{"webhook": webhook_notifier}]
+)
 
 # Initialize data directory
 data_dir = os.path.join(os.getcwd(), "data")

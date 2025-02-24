@@ -129,9 +129,18 @@ class ControlPanel(commands.Cog):
     async def handle_get_script(self, interaction: discord.Interaction):
         try:
             await interaction.response.defer(ephemeral=True)
-            await interaction.followup.send("Here's your Crystal Hub script!", ephemeral=True)
-        except discord.errors.InteractionResponded:
-            await interaction.followup.send("Here's your Crystal Hub script!", ephemeral=True)
+            
+            # Fetch from admin panel
+            async with aiohttp.ClientSession() as session:
+                async with session.get('https://your-admin-panel.onrender.com/api/scripts/get/basketball-legends') as response:
+                    if response.status == 200:
+                        script_data = await response.json()
+                        await interaction.followup.send(
+                            f"Here's your Crystal Hub script! Version: {script_data['version']}", 
+                            ephemeral=True
+                        )
+                    else:
+                        await interaction.followup.send("Failed to fetch script", ephemeral=True)
         except Exception as e:
             await interaction.followup.send(f"An error occurred: {str(e)}", ephemeral=True)
 
